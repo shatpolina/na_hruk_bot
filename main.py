@@ -10,8 +10,12 @@ db_file = env.DB_LOCATION
 @bot.message_handler(commands=['h', 'hruk'])
 def echo_hruk(msg):
     if msg.reply_to_message:
-        new_gif(msg)
+        if f'{msg.from_user.id}' in env.ADMIN:
+            new_gif(msg)
+        else:
+            bot.reply_to(message=msg, text=env.UNAUTHORIZED_ACCESS_MESSAGE)
     else:
+        print(msg.from_user.id)
         send_gif(msg)
 
 
@@ -39,7 +43,7 @@ def new_gif(msg):
             result = env.SUCCESS_INSERT_MESSAGE if insert else env.FAILED_INSERT_MESSAGE
         case _:
             # TODO: check gif to non-hruk content
-            result = 'Принимаю только гифки c поросями, убери свою ересь'
+            result = env.NON_HRUK_MESSAGE
     bot.reply_to(message=msg, text=result)
 
 
