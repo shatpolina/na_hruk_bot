@@ -1,5 +1,4 @@
 import sqlite3
-import env
 
 
 class Database(object):
@@ -12,7 +11,7 @@ class Database(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, ext_type, exc_value, traceback):
+    def __exit__(self, exc_value):
         self.cursor.close()
         if isinstance(exc_value, Exception):
             self.__connection.rollback()
@@ -31,7 +30,7 @@ class Database(object):
         return self.execute(sql).fetchone()[0]
         
 
-    def insert_gif(self, file_id: str, file_unique_id: str) -> bool:
+    def insert(self, file_id: str, file_unique_id: str) -> bool:
         sql = '''
         INSERT INTO Gifs (file_id, file_unique_id) VALUES (?, ?)
         '''
@@ -52,3 +51,6 @@ class Database(object):
         UNIQUE(file_unique_id)
         )
         ''')
+    
+    def delete(self, id: str):
+        self.execute('DELETE FROM gifs WHERE file_unique_id=?', [id])
