@@ -7,6 +7,7 @@ from random import randrange
 
 bot = telebot.TeleBot(env.BOT_TOKEN)
 db_file = env.DB_LOCATION
+chat_limits = {}
 
 
 @bot.message_handler(commands=['h', 'hruk'])
@@ -36,25 +37,37 @@ def echo_all(msg):
         send_hruk(msg)
 
 
+def rate_limit_handler(key, fn, calls, period, *args, **kargs):
+    global chat_limits
+    key = key + (fn.__name__, )
+    if chat_limits.get(key) is None:
+        chat_limits.update(
+            {key: limits(calls=calls, period=period)})
+    return chat_limits.get(key)(fn)(*args, **kargs)
+
+
 def send_hruk(msg):
     print("ECHO HRUK")
+    key = (msg.chat.id, msg.from_user.id)
     try:
-        print("IN TRY BEFORE SEND GIF")
-        send_gif(msg)
+        print("IN TRY BEFORE SEND with limits")
+        rate_limit_handler(key, send_gif, env.RATE_LIMIT,
+                           env.RATE_LIMIT_TIME, msg)
     except RateLimitException as e:
         try:
-            text = f'{env.rate_limit_message(int(e.period_remaining))}'
-            bot.reply_to(message=msg, text=text)
+            # I know how LOOOOOONG the names of these vars are
+            res = rate_limit_handler(key, env.rate_limit_message, env.RATE_LIMIT_RATE_LIMIT,
+                                     env.RATE_LIMIT_TIME_RATE_LIMIT_TIME, int(e.period_remaining))
+            bot.reply_to(message=msg, text=f'{res}')
         except RateLimitException as e:
             print('rate limit to rate limit messaging ', e.period_remaining)
 
 
-@limits(calls=env.RATE_LIMIT, period=env.RATE_LIMIT_TIME)
 def send_gif(msg):
     with Database(db_file) as db:
         file_id = db.select_random_gif()
-        print(f'SEND GIF {file_id}')
     if file_id:
+        print(f'SEND GIF {file_id}')
         bot.send_animation(
             chat_id=msg.chat.id,
             animation=file_id,

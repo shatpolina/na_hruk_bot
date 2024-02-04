@@ -11,7 +11,7 @@ class Database(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_value):
+    def __exit__(self, ext_type, exc_value, traceback):
         self.cursor.close()
         if isinstance(exc_value, Exception):
             self.__connection.rollback()
@@ -27,8 +27,12 @@ class Database(object):
 
     def select_random_gif(self):
         sql = "SELECT file_id FROM gifs WHERE rowid > (ABS(RANDOM()) % (SELECT max(rowid) FROM gifs)) LIMIT 1"
-        return self.execute(sql).fetchone()[0]
-        
+        res = self.execute(sql)
+        try:
+            return res.fetchone()[0]
+        except Exception as e:
+            print(e)
+            return False
 
     def insert(self, file_id: str, file_unique_id: str) -> bool:
         sql = '''
@@ -51,6 +55,15 @@ class Database(object):
         UNIQUE(file_unique_id)
         )
         ''')
-    
-    def delete(self, id: str):
-        self.execute('DELETE FROM gifs WHERE file_unique_id=?', [id])
+
+    def delete(self, id: str) -> bool:
+        sql = '''
+        DELETE FROM gifs WHERE file_unique_id=?
+        '''
+        try:
+            self.execute(sql, (id, ))
+            print('SUCCESSFUL DELETE')
+            return True
+        except Exception as e:
+            print(e)
+            return False

@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 from random import randrange
-from ratelimit import limits
 
 load_dotenv('.env')
 
@@ -19,8 +18,9 @@ ADMIN = os.getenv("ADMIN")
 
 RATE_LIMIT = 5
 RATE_LIMIT_TIME = 3600
-RATE_LIMIT_RATE_LIMIT = 1
-RATE_LIMIT_TIME_RATE_LIMIT_TIME = 300
+# I know how LOOOOOONG the names of these vars are
+RATE_LIMIT_RATE_LIMIT = 3
+RATE_LIMIT_TIME_RATE_LIMIT_TIME = 3600
 
 SUCCESS_INSERT_MESSAGE = os.getenv("SUCCESS_INSERT_MESSAGE")
 FAILED_INSERT_MESSAGE = os.getenv("FAILED_INSERT_MESSAGE")
@@ -32,7 +32,6 @@ UNAUTHORIZED_ACCESS_MESSAGE = os.getenv("UNAUTHORIZED_ACCESS_MESSAGE")
 RATE_LIMIT_MESSAGE_LIST = os.getenv("RATE_LIMIT_MESSAGE").split(";")
 
 
-@limits(calls=RATE_LIMIT_RATE_LIMIT, period=RATE_LIMIT_TIME_RATE_LIMIT_TIME)
 def rate_limit_message(i: int) -> str:
     sec = 'секунд'
     d = int(str(i)[-1])
