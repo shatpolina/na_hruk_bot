@@ -33,8 +33,10 @@ def echo_del_hruk(msg):
 
 @bot.message_handler(func=lambda m: True)
 def echo_all(msg):
-    if "хрю" in msg.text.lower():
-        send_hruk(msg)
+    for tw in env.TRIGGER_WORDS:
+        if tw in msg.text.lower():
+            send_hruk(msg)
+            break
 
 
 def rate_limit_handler(key, fn, calls, period, *args, **kargs):
@@ -101,7 +103,6 @@ def del_gif(msg):
                 res = db.delete(file_unique_id)
             result = env.SUCCESS_DELETE_MESSAGE if res else env.FAILED_DELETE_MESSAGE
         case _:
-            # TODO: check gif to non-hruk content
             result = env.NON_HRUK_MESSAGE_LIST[randrange(
                 len(env.NON_HRUK_MESSAGE_LIST))]
     bot.reply_to(message=msg, text=result)
